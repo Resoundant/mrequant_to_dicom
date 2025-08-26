@@ -191,8 +191,8 @@ def open_mask(mask_filepath, shape:tuple[int,int,int])->np.ndarray:
     with open(mask_filepath, 'rb') as f:
         mask = np.fromfile(f, dtype=np.uint8)
     image = mask.reshape(shape, order='F') * 255 # order Fortran style
-    # for i in range(image.shape[2]):
-    #     image[:,:,i] = np.rot90(image[:,:,i], 1) # rotate CCW 90 deg
+    for i in range(image.shape[2]):
+        image[:,:,i] = np.transpose(image[:,:,i]) # transpose to match original quant origin
     return image #reshape doesn't create new
 
 def display_help():
