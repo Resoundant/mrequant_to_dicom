@@ -23,13 +23,16 @@ def quant_to_dicom(directory_path):
     print(f"Converting MREquant to DICOM in {directory_path}")
     quant_dir = find_quant_directory(directory_path)
     if quant_dir == '':
-        print('  ERROR: Incomplete data found in quant directory')
+        print('  ERROR: could not find a valid quant directory (missing dicoms or quant files)')
         return
     print(f"  Found quant directory {quant_dir}")
     # load mmdi-quant dicoms
     all_dicoms = load_dicoms(quant_dir)
     print(f'  Found {len(all_dicoms)} dicoms')
-    stiff_dicoms = extract_stiffnes_dicoms(all_dicoms)
+    stiff_dicoms = extract_stiffness_dicoms(all_dicoms)
+    if len(stiff_dicoms) == 0:
+        print('  ERROR: No stiffness dicoms found.')
+        return
     stiff_dicoms = sort_stiffness_dicoms(stiff_dicoms)
     shape = get_image_shape(stiff_dicoms)
 
@@ -57,7 +60,7 @@ def quant_to_dicom(directory_path):
 
 def find_quant_directory(directory_path) -> str:
     ''' 
-    Return the directory that contains the mmdi DICOM outputs and MRE quant files, or empty string if not found.
+    Return the FIRST directory that contains the mmdi DICOM outputs and MRE quant files, or empty string if not found.
     Specifically, it will look for the existance of one .mask file and one .snrmask (quant files)
     It will also look for MMDI's files by its default file extensions (.sdcopen and .quant)
     This may seem very resctrictive, but we are specifically looking for the "quant" folder
@@ -92,15 +95,22 @@ def load_dicoms(filepath) -> list[pydicom.Dataset]:
     for file in files:
         try:
             ds = pydicom.dcmread(file)
+            insert_stiffness_based_on_filename(ds, os.path.basename(file))
             ds_list.append(ds)
         except:
             continue
     return ds_list
 
-def extract_stiffnes_dicoms(ds_list:list[pydicom.Dataset]):
+def insert_stiffness_based_on_filename(ds:pydicom.Dataset, filename:str) -> None:
+    if not ds.get('ImageComments', '') and ('s00' in filename):
+        #image comments missing, but file is stiffness filename.
+        ds.ImageComments = 'stiffness'
+    return
+
+def extract_stiffness_dicoms(ds_list:list[pydicom.Dataset]):
     stiff_list = []
     for ds in ds_list:
-        if ("stiffness" in ds.get('ImageComments', '').lower()) and ds.get('PhotometricInterpretation', '') == "MONOCHROME2":
+        if (ds.get('ImageComments', '').strip().lower() == "stiffness") and ds.get('PhotometricInterpretation', '') == "MONOCHROME2":
             stiff_list.append(ds)
     return stiff_list
 
