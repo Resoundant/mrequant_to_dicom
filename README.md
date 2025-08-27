@@ -9,7 +9,7 @@ venv/Scripts/activate
 
 To run, provide input data folder.
 
-python3 mrequant_to_dicom.py <data_folder>
+python3 quant_to_dicom.py <data_folder>
 
 Theory of operation:
 

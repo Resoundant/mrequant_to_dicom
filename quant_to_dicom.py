@@ -23,7 +23,7 @@ def quant_to_dicom(directory_path):
     print(f"Converting MREquant to DICOM in {directory_path}")
     quant_dir = find_quant_directory(directory_path)
     if quant_dir == '':
-        print('  ERROR: No quant directory found')
+        print('  ERROR: Incomplete data found in quant directory')
         return
     print(f"  Found quant directory {quant_dir}")
     # load mmdi-quant dicoms
