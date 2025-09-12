@@ -33,6 +33,7 @@ def quant_to_dicom(directory_path):
     if len(stiff_dicoms) == 0:
         print('  ERROR: No stiffness dicoms found.')
         return
+    print(f'  Found {len(stiff_dicoms)} stiffness dicoms')
     stiff_dicoms = sort_stiffness_dicoms(stiff_dicoms)
     shape = get_image_shape(stiff_dicoms)
 
@@ -151,14 +152,15 @@ def check_data_is_related(ds1:pydicom.Dataset, mask_filepath, snrmask_filepath) 
     return False
 
 def masks_to_dicom(masks:np.ndarray, ds_list:list[pydicom.Dataset], desc='') -> list[pydicom.Dataset]:
-    roi_series_num = int(str(ds_list[0].SeriesNumber) + '97')
+    base_series_num = base_series_number(ds_list)
+    roi_series_num = int(str(base_series_num) + '97')
     if desc == '':
         desc = 'mrequantfile'
-        roi_series_num = int(str(ds_list[0].SeriesNumber) + '97')
+        roi_series_num = int(str(base_series_num) + '97')
     if desc == 'mask':
-        roi_series_num = int(str(ds_list[0].SeriesNumber) + '98')
+        roi_series_num = int(str(base_series_num) + '98')
     if desc == 'snrmask':
-        roi_series_num = int(str(ds_list[0].SeriesNumber) + '99')
+        roi_series_num = int(str(base_series_num) + '99')
     
     roi_ds_list = []
     roi_series_uid = pydicom.uid.generate_uid()
@@ -182,6 +184,17 @@ def masks_to_dicom(masks:np.ndarray, ds_list:list[pydicom.Dataset], desc='') -> 
 
         roi_ds_list.append(roi_ds)
     return roi_ds_list
+
+def base_series_number(ds_list:list[pydicom.Dataset]) -> int:
+    series_numbers = [ds.get('SeriesNumber') for ds in ds_list]
+    series_numbers = [x for x in series_numbers if x]     # remove all None 
+    if len(series_numbers) == 0:
+        print('  ERROR: could not find a valid base series number in dicoms')
+        return 88888
+    series_numbers = list(set(series_numbers))
+    if len(series_numbers) > 1:
+        print('  ERROR: more than one base series number in dicoms, using the lowest')
+    return series_numbers[0]
 
 def save_dicoms(ds_list:list[pydicom.Dataset], mypath:str, desc = ''):
     if desc ==  '':
@@ -210,7 +223,11 @@ def display_help():
 
 if __name__ == "__main__":
     datapath = sys.argv[1]
-    if (len(sys.argv) != 2) or (not os.path.isdir(datapath)):
+    if (len(sys.argv) != 2):
         display_help()
+        exit(1)
+    if  (not os.path.isdir(datapath)):
+        display_help()
+        print(f"ERROR: {datapath} is not a directory")
         exit(1)
     quant_to_dicom(datapath)

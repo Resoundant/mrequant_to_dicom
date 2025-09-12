@@ -11,7 +11,11 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["C:\\Users\\Resoundant-Jeremy\\Documents\\src\\mrequant_to_dicom\\test_data_quant"],
+            "args": [
+                //"C:\\Users\\Resoundant-Jeremy\\Documents\\src\\mrequant_to_dicom\\test_data_quant"
+                //"C:\\Users\\Resoundant-Jeremy\\Documents\\src\\mrequant_to_dicom\\"
+                //"C:\\testdata\\FAST0049_2DfGRE"
+            ],
         }
     ]
 }
