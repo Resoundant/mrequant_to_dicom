@@ -193,7 +193,9 @@ def base_series_number(ds_list:list[pydicom.Dataset]) -> int:
         return 88888
     series_numbers = list(set(series_numbers))
     if len(series_numbers) > 1:
-        print('  ERROR: more than one base series number in dicoms, using the lowest')
+        print(f'  ERROR: more than one base series number in dicoms, using the lowest')
+        print(f'  Series numbers found:{series_numbers}')
+    print(f"  Base series number {series_numbers[0]}")
     return series_numbers[0]
 
 def save_dicoms(ds_list:list[pydicom.Dataset], mypath:str, desc = ''):
