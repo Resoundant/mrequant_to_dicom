@@ -19,7 +19,7 @@ def save_quantdir_list(quant_dirs, top_dir):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python batch_quant_to_dicom.py <path_too_directory>")
+        print("Usage: python batch_quant_to_dicom.py <path_to_directory>")
         print("Will find all quant directories and run quant_to_dicom on them")
         exit(1)
     top_dir = sys.argv[1]

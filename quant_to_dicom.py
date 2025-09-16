@@ -44,12 +44,22 @@ def quant_to_dicom(directory_path):
         return
     print(f"  found mask files {os.path.basename(mask_filepath)} and {os.path.basename(snrmask_filepath)}")
 
+    base_series_num = base_series_number(stiff_dicoms)
+    if base_series_num == 100:
+        # base series number was modified; go up a dir to find the real base series number
+        print('  ...stiffness series is 100, deriving base series number from mag/phase data instead')
+        mp_dicoms = load_dicoms(os.path.dirname(quant_dir))
+        base_series_num = base_series_number(mp_dicoms)
+        if base_series_num < 100:
+            base_series_num *= 100
+    print(f"  base series number is {base_series_num}")
+
     # mask dicom output folder
     # output_folder = os.path.join(quant_dir, 'test_masks')
     output_folder = quant_dir
     # open masks and turn them into DICOMs
     masks = open_mask(mask_filepath, shape)
-    mask_dicoms = masks_to_dicom(masks, stiff_dicoms, desc="mask")
+    mask_dicoms = masks_to_dicom(masks, stiff_dicoms, desc="mask", base_series_num=base_series_num)
     save_dicoms(mask_dicoms, output_folder, desc="mask")
     print(f"  saved {len(mask_dicoms)} mask dicoms to {output_folder}")
     #open snrmasks and save as dicoms
@@ -151,8 +161,9 @@ def check_data_is_related(ds1:pydicom.Dataset, mask_filepath, snrmask_filepath) 
         return True
     return False
 
-def masks_to_dicom(masks:np.ndarray, ds_list:list[pydicom.Dataset], desc='') -> list[pydicom.Dataset]:
-    base_series_num = base_series_number(ds_list)
+def masks_to_dicom(masks:np.ndarray, ds_list:list[pydicom.Dataset], desc='', base_series_num=None) -> list[pydicom.Dataset]:
+    if base_series_num is None:
+        base_series_num = base_series_number(ds_list)
     roi_series_num = int(str(base_series_num) + '97')
     if desc == '':
         desc = 'mrequantfile'
@@ -195,7 +206,6 @@ def base_series_number(ds_list:list[pydicom.Dataset]) -> int:
     if len(series_numbers) > 1:
         print(f'  ERROR: more than one base series number in dicoms, using the lowest')
         print(f'  Series numbers found:{series_numbers}')
-    print(f"  Base series number {series_numbers[0]}")
     return series_numbers[0]
 
 def save_dicoms(ds_list:list[pydicom.Dataset], mypath:str, desc = ''):
