@@ -64,7 +64,7 @@ def quant_to_dicom(directory_path):
     print(f"  saved {len(mask_dicoms)} mask dicoms to {output_folder}")
     #open snrmasks and save as dicoms
     snrmasks = open_mask(snrmask_filepath, shape)
-    snrmask_dicoms = masks_to_dicom(snrmasks, stiff_dicoms, desc="snrmask")
+    snrmask_dicoms = masks_to_dicom(snrmasks, stiff_dicoms, desc="snrmask",  base_series_num=base_series_num)
     save_dicoms(snrmask_dicoms, output_folder, desc="snrmask")
     print(f"  saved {len(snrmask_dicoms)} snrmask dicoms to {output_folder}")
     return
